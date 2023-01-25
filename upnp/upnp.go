@@ -10,8 +10,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -249,7 +249,7 @@ func CollectAll(URL string, username string, password string, resultFile string)
 	fmt.Println(string(jsonString))
 
 	if resultFile != "" {
-		err = ioutil.WriteFile(resultFile, jsonString, 0644)
+		err = os.WriteFile(resultFile, jsonString, 0644)
 		if err != nil {
 			fmt.Printf("Failed writing JSON file '%s': %s\n", resultFile, err.Error())
 		}
