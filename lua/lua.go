@@ -149,6 +149,37 @@ func utf16leMd5(s string) []byte {
 
 func (exporter *Exporter) request(page string) ([]byte, error) {
 
+	response, err := exporter.doRequest(page)
+	if err != nil {
+		return nil, err
+	}
+
+	if response.StatusCode == http.StatusUnauthorized || response.StatusCode == http.StatusForbidden {
+		response.Body.Close()
+		exporter.SID = ""
+		err = exporter.logon()
+		if err != nil {
+			return nil, err
+		}
+		response, err = exporter.doRequest(page)
+		if err != nil {
+			return nil, err
+		}
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("lua request response not OK: %v", response.Status)
+	}
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return nil, err
+	}
+	return body, nil
+}
+
+func (exporter *Exporter) doRequest(page string) (*http.Response, error) {
 	client := &http.Client{}
 
 	parameters := url.Values{}
@@ -161,22 +192,5 @@ func (exporter *Exporter) request(page string) ([]byte, error) {
 	}
 	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	response, err := client.Do(request)
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode == http.StatusUnauthorized || response.StatusCode == http.StatusForbidden {
-		exporter.SID = ""
-	}
-	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("lua request response not OK: %v", response.Status)
-	}
-
-	body, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return nil, err
-	}
-	return body, nil
+	return client.Do(request)
 }

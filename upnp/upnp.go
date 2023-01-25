@@ -219,7 +219,7 @@ func CollectAll(URL string, username string, password string, resultFile string)
 
 			if !action.IsGetOnly() {
 				result = make(map[string]interface{})
-				var errorResult = fmt.Sprintf("... not calling since arguments required or no output")
+				var errorResult = "... not calling since arguments required or no output"
 				result["error"] = errorResult
 
 			} else {
@@ -269,6 +269,7 @@ func (exporter *Exporter) Collect(metrics []*metric.Metric) error {
 		if err != nil {
 			fmt.Println(err.Error())
 			collectErrors.Inc()
+			exporter.AuthHeader = "" // clear Authheader in case of error, so force reauthentication
 			return err
 		}
 		metric.MetricResult = result
