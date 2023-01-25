@@ -88,6 +88,7 @@ func (exporter *Exporter) Collect(metrics []*metric.Metric) (err error) {
 
 		jsonResponse, err := exporter.request(m.Page)
 		if err != nil {
+			fmt.Printf("error requesting metric %v: %v\n", m, err)
 			return err
 		}
 
@@ -166,8 +167,11 @@ func (exporter *Exporter) request(page string) ([]byte, error) {
 	}
 	defer response.Body.Close()
 
+	if response.StatusCode == http.StatusUnauthorized || response.StatusCode == http.StatusForbidden {
+		exporter.SID = ""
+	}
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Lua request response not OK: %v", response.Status)
+		return nil, fmt.Errorf("lua request response not OK: %v", response.Status)
 	}
 
 	body, err := ioutil.ReadAll(response.Body)
