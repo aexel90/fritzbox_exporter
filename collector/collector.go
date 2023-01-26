@@ -92,7 +92,7 @@ func (collector *Collector) Collect(ch chan<- prometheus.Metric) {
 	}
 }
 
-//Test collector metrics
+// Test collector metrics
 func (collector *Collector) Test(resultFile string) {
 
 	err := collector.collect()
@@ -183,7 +183,11 @@ func (collector *Collector) addGatewayGeneric() {
 
 	for _, metric := range collector.metrics {
 		for _, metricResult := range metric.MetricResult {
-			metricResult["gateway"] = collector.gateway
+			if metricResult != nil {
+				metricResult["gateway"] = collector.gateway
+			} else {
+				fmt.Printf("Error: metricResult is nil for metric %v\n", metric)
+			}
 		}
 	}
 }
